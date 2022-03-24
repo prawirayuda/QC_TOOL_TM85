@@ -49,11 +49,18 @@ class Controller:
     def handleNG(self):
         self.ui_standby()
 
+    def standby_mode(self):
+        self._parent.value_test_power.setText("N/A")
+        self._parent.value_test_sensor.setText("N/A")
+
     def ui_standby(self):
-        # self._parent.label_instruction.setText("MODE STANDBY")
-        self._parent.button1.setEnabled(True)
-        self._parent.pass_button.setStyleSheet('background: palette(window)')
-        self._parent.fail_button.setStyleSheet('background: palette(window)')
+        self._parent.label_instruction.setText("MODE STANDBY")
+        update_status_label_instruction = self._parent.label_instruction.text()
+        if update_status_label_instruction =="MODE STANDBY":
+            self.standby_mode()
+            self._parent.button_start.setEnabled(True)
+            self._parent.pass_button.setStyleSheet('background: palette(window)')
+            self._parent.fail_button.setStyleSheet('background: palette(window)')
         
 if __name__ == "__main__":
     pass

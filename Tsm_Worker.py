@@ -176,7 +176,7 @@ class QC_STATE_TAMPER(State):
         print("STATE : QC_STATE_TEST_TAMPER.")
         self._controller._parent._parent.label_instruction.setText("TESTING TAMPER & PRESS THE BUTTON IN 3 SECONDS")
         time.sleep(2)
-        self._controller._parent._parent.label_instruction.setText("PASS")
+        self._controller._parent._parent.label_instruction.setText("FAIL")
 
         # ser = serial.Serial("COM20", 9600)
         # ser.write(b"{S?}")
@@ -306,23 +306,30 @@ class Worker(QRunnable):
             update_status_test_sensor = self._parent._parent.label_instruction.text()
             if update_status_test_sensor == "PASS":
                 test_tamper.pass_function()
-                
                 update_status_test_tamper = self._parent._parent.label_instruction.text()
+                print(update_status_test_tamper)
                 if update_status_test_tamper == "PASS":
                     test_modem_on.pass_function()
-                    
                     update_status_test_modem_on = self._parent._parent.label_instruction.text()
                     if update_status_test_modem_on == "PASS":
                         test_simcard.pass_function()
-                        
                         update_status_test_simcard = self._parent._parent.label_instruction.text()
                         if update_status_test_simcard == "PASS":
-                            test_simcard.pass_function()
-                            
+                            test_signal.pass_function()
                             update_status_test_signal = self._parent._parent.label_instruction.text()
-                            if update_status_test_signal == "PASS":
-                                
+                            if update_status_test_signal == "PASS":       
                                 self._parent._parent.pass_button.setStyleSheet("background-color:#4DAF50;")
+
+                            elif update_status_test_signal =="FAIL":
+                                self._parent.handleNG()
+                        elif update_status_test_simcard =="FAIL":
+                            self._parent.handleNG()                            
+                    elif update_status_test_modem_on =="FAIL":
+                        self._parent.handleNG()
+                elif update_status_test_tamper == "FAIL":
+                    self._parent.handleNG()
+            elif update_status_test_sensor == "FAIL":
+                self._parent.handleNG()
         elif update_status_test_power == "FAIL":
             self._parent._parent.value_test_power.setText("FAIL")
             standby.pass_function()
