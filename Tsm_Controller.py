@@ -40,11 +40,11 @@ class Controller:
         #     self._parent.fail_button.setEnabled(False)
 
     def update_label(self, update_label):
-        self._parent.label2.setText(update_label)
+        self._parent.value_test_power.setText(update_label)
         if update_label == "PASS":
-            self._parent.label3.setText("On Progress")
+            self._parent.value_test_sensor.setText("On Progress")
         elif update_label == "FAIL":
-            self._parent.label3.setText("NG")
+            self._parent.value_test_sensor.setText("NG")
     
     def handleNG(self):
         self.ui_standby()
