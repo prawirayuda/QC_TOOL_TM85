@@ -1,7 +1,6 @@
 from __future__ import annotations
 from threading import *
-from PyQt5.QtCore import (QObject, QRunnable, Qt, QThread, QThreadPool,
-                          pyqtSignal, pyqtSlot)
+from PyQt5.QtCore import (QRunnable,pyqtSignal, pyqtSlot)
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
                              QHBoxLayout, QLabel, QMainWindow, QPlainTextEdit,
@@ -56,9 +55,9 @@ class QC_STATE_STANDBY(State):
         self._controller = controller
 
     def pass_function(self) -> None:
+        self._controller._parent.update("STANDBY MODE")
         print("STATE : QC_STATE_STANDBY.")
         # print("QC_STATE_STANDBY now changes the state of the context.")
-        self._controller._parent.update("STANDBY MODE")
 
     def fail_function(self):
         print("if fail stay in standby mode")
@@ -72,6 +71,7 @@ class QC_STATE_TEST_POWER_RAIL(State):
     
     def pass_function(self) -> None:
         print("STATE : QC_STATE_TEST_POWER_RAIL.")
+        self._controller._parent.update("FAIL")
         # ser = serial.Serial("COM20", 9600)
         # ser.write(b"{P?}")
         # data = ser.readline()
@@ -185,6 +185,8 @@ class Worker(QRunnable):
             test_sensor.pass_function()
         elif data_update == "FAIL":
             self._parent._parent.label2.setText("FAIL")
+            standby.pass_function()
+            self._parent.handleNG()
 
 if __name__ == "__main__":
     pass

@@ -35,9 +35,9 @@ class Controller:
             self._parent.pass_button.setStyleSheet("background-color: {}".format("#86b721"))
         elif update_str == "FAIL":
             self._parent.fail_button.setStyleSheet("background-color: {}".format("#fe1818"))
-        elif update_str == "STANDBY MODE":
-            self._parent.pass_button.setEnabled(False)
-            self._parent.fail_button.setEnabled(False)
+        # elif update_str == "STANDBY MODE":
+        #     self._parent.pass_button.setEnabled(False)
+        #     self._parent.fail_button.setEnabled(False)
 
     def update_label(self, update_label):
         self._parent.label2.setText(update_label)
