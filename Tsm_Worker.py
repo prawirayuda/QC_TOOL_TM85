@@ -1,6 +1,8 @@
 from __future__ import annotations
+from itertools import count
+from ntpath import join
 from threading import *
-from PyQt5.QtCore import (QRunnable,pyqtSignal, pyqtSlot)
+from PyQt5.QtCore import (QRunnable,pyqtSignal, pyqtSlot, QTimer)
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
                              QHBoxLayout, QLabel, QMainWindow, QPlainTextEdit,
@@ -8,6 +10,8 @@ from PyQt5.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
 
 import time
 from abc import ABC, abstractmethod
+import serial
+import serial.tools.list_ports
 
 
 class Context:
@@ -72,50 +76,83 @@ class QC_STATE_TEST_POWER_RAIL(State):
     def pass_function(self) -> None:
         print("STATE : QC_STATE_TEST_POWER_RAIL.")
         self._controller._parent._parent.label_instruction.setText("TESTING POWER RAIL")
-        time.sleep(2)
-        self._controller._parent._parent.label_instruction.setText("PASS")
+        # time.sleep(2)
+        # self._controller._parent._parent.label_instruction.setText("PASS")
         # self._controller._parent.update("PASS")
-        # ser = serial.Serial("COM20", 9600)
-        # ser.write(b"{P?}")
-        # data = ser.readline()
-        # # print(data)
-        # input1 = data[1:5]
-        # input2 = input1[0:2]
-        # input3 = input1[2:]
-        # integer1 = int.from_bytes(input2,"little")
-        # integer2 = int.from_bytes(input3,"little")
-        # th1 = 1.6
-        # th2 = 1.1
-        # while True:
-        #     val1 = (integer1/1023) * 1.8
-        #     val2 = (integer2/1023) * 1.2
-        #     # print(val1)
-        #     # print(val2)
-        #     if val1 > th1 and val2 > th2: #test pass value
-        #     # if val1 < th1 and val2 < th2: #test fail value
-        #         print("PASS")
-        #         self._controller._parent.update("PASS")
-        #         break
-        #     else:
-        #         print("FAIL")
-        #         self._controller._parent.update("FAIL")
-        #         return self.fail_function()
-                
 
-        print("QC_STATE_TEST_POWER_RAIL wants to change the state of the context.")
+        #  7B 90 01 F4 01 7D 0A
+        serialInst = serial.Serial()
+        ports = serial.tools.list_ports.comports()
+        portList = []
+
+        for onePort in ports:
+            portList.append(str(onePort))
+            print(str(onePort))
+            
+        val = input("SELECT PORT : ")
+
+        for x in range(0, len(portList)):
+            if portList[x].startswith("COM" + str(val)):
+                portVar = "COM" + str(val)
+                print(f" selected port is {portList[x]}")
+                
+        serialInst.baudrate = 9600
+        serialInst.port = portVar
+        serialInst.bytesize = 8
+        serialInst.timeout = 10
+        serialInst.stopbits=serial.STOPBITS_ONE
+        serialInst.open()
+
+        list_buffer = []
+        serialInst.write(b"{P?}")
+        time.sleep(3)
+        while True:
+            if serialInst.in_waiting:
+                data1 = serialInst.read()
+                list_buffer.append(data1)
+                # print(list_buffer)
+                if list_buffer[-1] == b"}":
+                    print("out of loop")
+                    val1 = list_buffer[1:3]
+                    val2 = list_buffer[3:5]
+                    byte1, byte2 = val1 
+                    byte3, byte4 = val2 
+                    # print(byte1)
+                    # print(byte2)
+                    data_int1 = int.from_bytes(byte1+byte2, 'little')
+                    data_int2 = int.from_bytes(byte3+byte4, 'little')
+                    print(data_int1)
+                    print(data_int2)    
+                    th1 = 1.6
+                    th2 = 1.1
+                    final_val1 = (data_int1/1023) * 1.8
+                    final_val2 = (data_int2/1023) * 1.2
+                    #tes sample 
+                    # if final_val1 > th1 and final_val2 > th2: #test fail value
+                    if final_val1 < th1 and final_val2 < th2: #test pass value
+                        print("PASS")
+                        self._controller._parent.update("PASS")
+                        break
+                    else:
+                        print("FAIL")
+                        self._controller._parent.update("FAIL")
+                        return self.fail_function()
+                    
+                    
+                
+                #     self._controller._parent.update("PASS")
+
+        
+        print("NEXT step")
+            # break
+
+
+        print("QC_STATE_TEST_POWER_RAIL wants to next State")
         time.sleep(3)
         self.context.setState(QC_STATE_SENSOR(Worker))     
         
     def fail_function(self) -> None:
-        # print("if fail back to standby mode")
-        # self.context.setState(QC_STATE_STANDBY(QC_STATE_STANDBY))
-        # print("STANDBY MODE")
-        # self._controller._parent.handleNG()
         pass
-        # close_port = serial.Serial()
-        # close_port.close()
-        # print(close_port)
-
 
 class QC_STATE_SENSOR(State):
     def __init__(self, controller):
@@ -128,42 +165,9 @@ class QC_STATE_SENSOR(State):
         time.sleep(2)
         self._controller._parent._parent.label_instruction.setText("PASS")
         time.sleep(2)
-        # ser = serial.Serial("COM20", 9600)
-        # ser.write(b"{S?}")
-        # data = ser.readline()
-        # print(data)
-        # input1 = data[1:5]
-        # input2 = input1[0:2]
-        # input3 = input1[2:]
-        # integer1 = int.from_bytes(input2,"little")
-        # integer2 = int.from_bytes(input3,"little")
-        # print(integer1)
-        # print(integer2)  
-        # th1 = 1.6
-        # th2 = 1.1
-        # while True:
-        #     val1 = (integer1/1023) * 1.8
-        #     val2 = (integer2/1023) * 1.2
-        #     # print(val1)
-        #     # print(val2)
-        #     # if val1 > th1 and val2 > th2: #test pass value
-        #     if val1 < th1 and val2 < th2: #test fail value
-        #         print("PASS")
-        #         self._controller._parent.update("PASS")
-        #         break
-        #     else:
-        #         print("FAIL")
-        #         self._controller._parent.update("FAIL")
-        #         time.sleep(2)
-        #         return self.fail_function()      
-        
         print("QC_STATE_TEST_SENSOR wants to change to next state.")
 
     def fail_function(self) -> None:
-        # print("if fail back to standby mode")
-        # self.context.setState(QC_STATE_STANDBY(QC_STATE_STANDBY))
-        # print("STANDBY MODE")
-        # self._controller._parent.handleNG()
         pass
         
         
@@ -176,44 +180,12 @@ class QC_STATE_TAMPER(State):
         print("STATE : QC_STATE_TEST_TAMPER.")
         self._controller._parent._parent.label_instruction.setText("TESTING TAMPER & PRESS THE BUTTON IN 3 SECONDS")
         time.sleep(2)
-        self._controller._parent._parent.label_instruction.setText("FAIL")
+        # self._controller._parent._parent.label_instruction.setText("FAIL")
 
-        # ser = serial.Serial("COM20", 9600)
-        # ser.write(b"{S?}")
-        # data = ser.readline()
-        # print(data)
-        # input1 = data[1:5]
-        # input2 = input1[0:2]
-        # input3 = input1[2:]
-        # integer1 = int.from_bytes(input2,"little")
-        # integer2 = int.from_bytes(input3,"little")
-        # print(integer1)
-        # print(integer2)  
-        # th1 = 1.6
-        # th2 = 1.1
-        # while True:
-        #     val1 = (integer1/1023) * 1.8
-        #     val2 = (integer2/1023) * 1.2
-        #     # print(val1)
-        #     # print(val2)
-        #     # if val1 > th1 and val2 > th2: #test pass value
-        #     if val1 < th1 and val2 < th2: #test fail value
-        #         print("PASS")
-        #         self._controller._parent.update("PASS")
-        #         break
-        #     else:
-        #         print("FAIL")
-        #         self._controller._parent.update("FAIL")
-        #         time.sleep(2)
-        #         return self.fail_function()      
         
         print("QC_STATE_TEST_TAMPER wants to change to next state.")
 
     def fail_function(self) -> None:
-        # print("if fail back to standby mode")
-        # self.context.setState(QC_STATE_STANDBY(QC_STATE_STANDBY))
-        # print("STANDBY MODE")
-        # self._controller._parent.handleNG()
         pass
         
 class QC_STATE_MODEM_ON(State):
@@ -267,9 +239,6 @@ class QC_STATE_SIGNAL(State):
         pass
         
         
-        
-                
-        
 
 class Worker(QRunnable):
     my_signal = pyqtSignal()
@@ -296,40 +265,40 @@ class Worker(QRunnable):
         standby.pass_function()
         test_power_rail.pass_function()
         update_status_test_power = self._parent._parent.label_instruction.text()
-        print(update_status_test_power)
+        # print(update_status_test_power)
         
         if update_status_test_power == "PASS":
             self._parent._parent.value_test_power.setText("PASS")
             self._parent._parent.value_test_sensor.setText("ON GOING")
             test_sensor.pass_function()
             
-            update_status_test_sensor = self._parent._parent.label_instruction.text()
-            if update_status_test_sensor == "PASS":
-                test_tamper.pass_function()
-                update_status_test_tamper = self._parent._parent.label_instruction.text()
-                print(update_status_test_tamper)
-                if update_status_test_tamper == "PASS":
-                    test_modem_on.pass_function()
-                    update_status_test_modem_on = self._parent._parent.label_instruction.text()
-                    if update_status_test_modem_on == "PASS":
-                        test_simcard.pass_function()
-                        update_status_test_simcard = self._parent._parent.label_instruction.text()
-                        if update_status_test_simcard == "PASS":
-                            test_signal.pass_function()
-                            update_status_test_signal = self._parent._parent.label_instruction.text()
-                            if update_status_test_signal == "PASS":       
-                                self._parent._parent.pass_button.setStyleSheet("background-color:#4DAF50;")
+        #     update_status_test_sensor = self._parent._parent.label_instruction.text()
+        #     if update_status_test_sensor == "PASS":
+        #         test_tamper.pass_function()
+        #         update_status_test_tamper = self._parent._parent.label_instruction.text()
+        #         print(update_status_test_tamper)
+        #         if update_status_test_tamper == "PASS":
+        #             test_modem_on.pass_function()
+        #             update_status_test_modem_on = self._parent._parent.label_instruction.text()
+        #             if update_status_test_modem_on == "PASS":
+        #                 test_simcard.pass_function()
+        #                 update_status_test_simcard = self._parent._parent.label_instruction.text()
+        #                 if update_status_test_simcard == "PASS":
+        #                     test_signal.pass_function()
+        #                     update_status_test_signal = self._parent._parent.label_instruction.text()
+        #                     if update_status_test_signal == "PASS":       
+        #                         self._parent._parent.pass_button.setStyleSheet("background-color:#4DAF50;")
 
-                            elif update_status_test_signal =="FAIL":
-                                self._parent.handleNG()
-                        elif update_status_test_simcard =="FAIL":
-                            self._parent.handleNG()                            
-                    elif update_status_test_modem_on =="FAIL":
-                        self._parent.handleNG()
-                elif update_status_test_tamper == "FAIL":
-                    self._parent.handleNG()
-            elif update_status_test_sensor == "FAIL":
-                self._parent.handleNG()
+        #                     elif update_status_test_signal =="FAIL":
+        #                         self._parent.handleNG()
+        #                 elif update_status_test_simcard =="FAIL":
+        #                     self._parent.handleNG()                            
+        #             elif update_status_test_modem_on =="FAIL":
+        #                 self._parent.handleNG()
+        #         elif update_status_test_tamper == "FAIL":
+        #             self._parent.handleNG()
+        #     elif update_status_test_sensor == "FAIL":
+        #         self._parent.handleNG()
         elif update_status_test_power == "FAIL":
             self._parent._parent.value_test_power.setText("FAIL")
             standby.pass_function()

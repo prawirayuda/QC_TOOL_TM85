@@ -6,7 +6,6 @@ from enum import IntEnum, auto
 import sys
 from PyQt5.QtWidgets import *
 import time
-import serial
 from threading import *
 from PyQt5.QtWidgets import (
     QApplication,
@@ -28,9 +27,7 @@ from Tsm_Controller import Controller
 from Tsm_Serial import SerialUtil
 
 class TaskRow(IntEnum):
-    # PORT_MODEM = 0
-    # PORT_QC = auto()
-    # BUTTON = 2
+
     LINE = 2
     TEST_POWER_RAIL = auto()
     TEST_SENSOR = auto()
@@ -42,20 +39,20 @@ class TaskRow(IntEnum):
 class ComboBox(QComboBox):
     clicked = pyqtSignal()
     
-    def __init__(self):
-        super().__init__()
-    
-    def show_pop_up(self):
+    def __init__(self,*args, **kwargs):
+        super(ComboBox,self).__init__(*args, **kwargs)
+        
+    def showPopup(self)-> None:
         self.clicked.emit()
-        return super().show_pop_up
-
+        return super().showPopup()
+    
 
 class MainWindow(QMainWindow,QWidget):
     
-    my_signal = pyqtSignal()
+    # my_signal = pyqtSignal()
     
     def __init__(self, parent = None):
-        super(MainWindow, self).__init__()
+        super(MainWindow, self).__init__(parent)
         self.setWindowTitle("QC TOOLS")
         self.setFixedSize(600,400)
         self._controller = Controller(self)
@@ -153,14 +150,15 @@ class MainWindow(QMainWindow,QWidget):
         self._controller.start_worker()
     
     def combo_box_modem_port(self):
+        # print("CLIKC")
         available_ports = SerialUtil.get_serial_ports()      
         
         if self.port_modem.count():
             for index in range(0, self.port_modem.count()):
                 self.port_modem.removeItem(index)
-            for port in available_ports:
-                item = port["port_name"]
-                self.port_modem.addItem(item)
+        for port in available_ports:
+            item = port["port_name"]
+            self.port_modem.addItem(item)
 
     def combo_box_qc_tools_port(self):
         available_ports = SerialUtil.get_serial_ports()      
@@ -168,11 +166,12 @@ class MainWindow(QMainWindow,QWidget):
         if self.port_qc.count():
             for index in range(0, self.port_qc.count()):
                 self.port_qc.removeItem(index)
-            for port in available_ports:
-                item = port["port_name"]
-                self.port_qc.addItem(item)
+        for port in available_ports:
+            item = port["port_name"]
+            self.port_qc.addItem(item)
 
-    
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
