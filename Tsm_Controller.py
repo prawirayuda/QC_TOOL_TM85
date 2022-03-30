@@ -63,11 +63,6 @@ class Controller:
             self._parent.fail_button.setStyleSheet('background: palette(window)')
         
         
-    def set_timeout(self, timeout):
-        self.timer = QTimer()
-        self.timer.timeout.connect()
-        self.timer.start(1000)
-        
         
 if __name__ == "__main__":
     pass

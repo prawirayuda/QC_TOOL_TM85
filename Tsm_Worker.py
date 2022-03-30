@@ -107,7 +107,8 @@ class QC_STATE_TEST_POWER_RAIL(State):
             flag = 0
             if flag == 1 or time.time() > timeout:
                 print("there's no data recieved")
-                break
+                self._controller._parent.handleNG()
+                return 
             if serialInst.in_waiting:
                 data1 = serialInst.read()
                 list_buffer.append(data1)
