@@ -71,12 +71,12 @@ class MainWindow(QMainWindow,QWidget):
         self.label_modem_port = QLabel("MODEM PORT     :")
         self.label_qctool_port = QLabel("QC TOOLS PORT :")
         self.port_modem = ComboBox()
-        self.port_modem.clicked.connect(self.combo_box_modem_port)
+        self.port_modem.clicked.connect(self.populate_combo_box_modem_port)
         self.port_qc = ComboBox()
         self.port_qc.addItem("SELECT QC PORT")
         otherclass = QC_STATE_TEST_POWER_RAIL(self)
         self.my_signal.connect(otherclass.pass_function)
-        self.port_qc.clicked.connect(self.combo_box_qc_tools_port)
+        self.port_qc.clicked.connect(self.populate_combo_box_qc_tools_port)
         
         self.button_start = QPushButton("START")
         self.button_start.clicked.connect(self.button_start_control)
@@ -119,7 +119,7 @@ class MainWindow(QMainWindow,QWidget):
         self.pass_button = QPushButton("PASS")
         self.fail_button = QPushButton("FAIL")
         
-        self.label_instruction = QLabel("PRESS THE BUTTON START FOR TESTING PROCESS")
+        self.label_instruction = QLabel("SELECT THE PORT FIRST PRESS THE BUTTON START FOR TESTING PROCESS")
         self.label_instruction.setStyleSheet("border: 1px solid black;")
         self.label_instruction.setAlignment(Qt.AlignCenter)
         
@@ -154,7 +154,7 @@ class MainWindow(QMainWindow,QWidget):
         # self._controller.selected_port = self.port_qc.``
         self._controller.start_worker()
     
-    def combo_box_modem_port(self):
+    def populate_combo_box_modem_port(self):
         # print("CLIKC")
         available_ports = SerialUtil.get_serial_ports()      
         
@@ -165,9 +165,8 @@ class MainWindow(QMainWindow,QWidget):
             item = port["port_name"]
             self.port_modem.addItem(item)
 
-    def combo_box_qc_tools_port(self):
-        self.my_signal.emit()
-        print("CB FUNC")
+    def populate_combo_box_qc_tools_port(self):
+        # print("CB FUNC")
         available_ports = SerialUtil.get_serial_ports()      
         
         if self.port_qc.count():

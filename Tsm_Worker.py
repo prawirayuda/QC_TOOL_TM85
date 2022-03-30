@@ -12,6 +12,7 @@ import time
 from abc import ABC, abstractmethod
 import serial
 import serial.tools.list_ports
+from Tsm_Config import QC_PORT_SERIAL_BAUDRATE
 
 
 class Context:
@@ -86,15 +87,9 @@ class QC_STATE_TEST_POWER_RAIL(State):
         # cb_port_qc = qc_ports.currentData.itemData(self._controller._parent._parent.port_qc.currentIndex())
         qc_ports:QComboBox = self._controller._parent._parent.port_qc   
         port_text = qc_ports.itemText(qc_ports.currentIndex())
-        selected_port = port_text[port_text.index("(")+1:port_text.index(")")]
+        selected_port = port_text[port_text.index("(")+1 : port_text.index(")")]
 
-        # for x in range(0, len(portList)):
-        #     if portList[x] == val_port:
-        #         serialInst.port = val_port
-        #         # self.portVar = "COM" + str(val_port)
-        #         print(f" selected port is {portList[x]}")
-                
-        serialInst.baudrate = 9600
+        serialInst.baudrate = QC_PORT_SERIAL_BAUDRATE
         serialInst.port = selected_port
         serialInst.bytesize = 8
         serialInst.timeout = 10
@@ -104,7 +99,15 @@ class QC_STATE_TEST_POWER_RAIL(State):
         list_buffer = []
         serialInst.write(b"{P?}")
 
+         
+        timeout = time.time() + 5 #in second 
+        
+        
         while True:
+            flag = 0
+            if flag == 1 or time.time() > timeout:
+                print("there's no data recieved")
+                break
             if serialInst.in_waiting:
                 data1 = serialInst.read()
                 list_buffer.append(data1)
@@ -136,15 +139,12 @@ class QC_STATE_TEST_POWER_RAIL(State):
                         print("FAIL")
                         self._controller._parent.update("FAIL")
                         return self.fail_function()
-                    
-                    
-                
+                                
                 #     self._controller._parent.update("PASS")
 
         
         print("NEXT step")
             # break
-
 
         print("QC_STATE_TEST_POWER_RAIL wants to next State")
         time.sleep(3)
