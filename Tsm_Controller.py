@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (
     QPlainTextEdit,
     QFrame,
     QPushButton)
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, QRunnable, QThreadPool
+from PyQt5.QtCore import QThreadPool, QTimer
 from Tsm_Worker import Worker
 
        
@@ -61,6 +61,13 @@ class Controller:
             self._parent.button_start.setEnabled(True)
             self._parent.pass_button.setStyleSheet('background: palette(window)')
             self._parent.fail_button.setStyleSheet('background: palette(window)')
+        
+        
+    def set_timeout(self, timeout):
+        self.timer = QTimer()
+        self.timer.timeout.connect()
+        self.timer.start(1000)
+        
         
 if __name__ == "__main__":
     pass

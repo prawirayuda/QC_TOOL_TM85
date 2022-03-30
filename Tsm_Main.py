@@ -25,6 +25,7 @@ from PyQt5.QtCore import pyqtSignal , Qt, pyqtSlot
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, QRunnable, QThreadPool
 from Tsm_Controller import Controller
 from Tsm_Serial import SerialUtil
+from Tsm_Worker import QC_STATE_TEST_POWER_RAIL
 
 class TaskRow(IntEnum):
 
@@ -49,7 +50,7 @@ class ComboBox(QComboBox):
 
 class MainWindow(QMainWindow,QWidget):
     
-    # my_signal = pyqtSignal()
+    my_signal = pyqtSignal()
     
     def __init__(self, parent = None):
         super(MainWindow, self).__init__(parent)
@@ -72,6 +73,9 @@ class MainWindow(QMainWindow,QWidget):
         self.port_modem = ComboBox()
         self.port_modem.clicked.connect(self.combo_box_modem_port)
         self.port_qc = ComboBox()
+        self.port_qc.addItem("SELECT QC PORT")
+        otherclass = QC_STATE_TEST_POWER_RAIL(self)
+        self.my_signal.connect(otherclass.pass_function)
         self.port_qc.clicked.connect(self.combo_box_qc_tools_port)
         
         self.button_start = QPushButton("START")
@@ -147,6 +151,7 @@ class MainWindow(QMainWindow,QWidget):
         self.setCentralWidget(widget) 
         
     def button_start_control(self):
+        # self._controller.selected_port = self.port_qc.``
         self._controller.start_worker()
     
     def combo_box_modem_port(self):
@@ -161,6 +166,8 @@ class MainWindow(QMainWindow,QWidget):
             self.port_modem.addItem(item)
 
     def combo_box_qc_tools_port(self):
+        self.my_signal.emit()
+        print("CB FUNC")
         available_ports = SerialUtil.get_serial_ports()      
         
         if self.port_qc.count():

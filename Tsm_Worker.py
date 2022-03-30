@@ -81,31 +81,29 @@ class QC_STATE_TEST_POWER_RAIL(State):
         # self._controller._parent.update("PASS")
 
         #  7B 90 01 F4 01 7D 0A
-        serialInst = serial.Serial()
-        ports = serial.tools.list_ports.comports()
-        portList = []
+        serialInst = serial.Serial()    
+        # val = input("SELECT PORT : ")   
+        # cb_port_qc = qc_ports.currentData.itemData(self._controller._parent._parent.port_qc.currentIndex())
+        qc_ports:QComboBox = self._controller._parent._parent.port_qc   
+        port_text = qc_ports.itemText(qc_ports.currentIndex())
+        selected_port = port_text[port_text.index("(")+1:port_text.index(")")]
 
-        for onePort in ports:
-            portList.append(str(onePort))
-            print(str(onePort))
-            
-        val = input("SELECT PORT : ")
-
-        for x in range(0, len(portList)):
-            if portList[x].startswith("COM" + str(val)):
-                portVar = "COM" + str(val)
-                print(f" selected port is {portList[x]}")
+        # for x in range(0, len(portList)):
+        #     if portList[x] == val_port:
+        #         serialInst.port = val_port
+        #         # self.portVar = "COM" + str(val_port)
+        #         print(f" selected port is {portList[x]}")
                 
         serialInst.baudrate = 9600
-        serialInst.port = portVar
+        serialInst.port = selected_port
         serialInst.bytesize = 8
         serialInst.timeout = 10
-        serialInst.stopbits=serial.STOPBITS_ONE
+        serialInst.stopbits= serial.STOPBITS_ONE
         serialInst.open()
 
         list_buffer = []
         serialInst.write(b"{P?}")
-        time.sleep(3)
+
         while True:
             if serialInst.in_waiting:
                 data1 = serialInst.read()
@@ -121,6 +119,7 @@ class QC_STATE_TEST_POWER_RAIL(State):
                     # print(byte2)
                     data_int1 = int.from_bytes(byte1+byte2, 'little')
                     data_int2 = int.from_bytes(byte3+byte4, 'little')
+                    self._controller._parent._parent.value_test_power.setText(f"Value1 : {data_int1}, Value2 : {data_int2}")
                     print(data_int1)
                     print(data_int2)    
                     th1 = 1.6
