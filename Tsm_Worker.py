@@ -56,11 +56,11 @@ class State(ABC):
     
            
 class QC_STATE_STANDBY(State):
-    def __init__(self, controller):
-        self._controller = controller
+    def __init__(self, worker):
+        self._worker = worker
 
     def pass_function(self) -> None:
-        self._controller._parent.update("STANDBY MODE")
+        self._worker._parent.update("STANDBY MODE")
         print("STATE : QC_STATE_STANDBY.")
         # print("QC_STATE_STANDBY now changes the state of the context.")
 
@@ -70,35 +70,33 @@ class QC_STATE_STANDBY(State):
 
     
 class QC_STATE_TEST_POWER_RAIL(State):  
-    def __init__(self, controller):
-        self._controller = controller
+    def __init__(self, worker):
+        self._worker = worker
     
     
     def pass_function(self) -> None:
         print("STATE : QC_STATE_TEST_POWER_RAIL.")
-        self._controller._parent._parent.label_instruction.setText("TESTING POWER RAIL")
+        self._worker._parent._parent.label_instruction.setText("TESTING POWER RAIL")
         # time.sleep(2)
-        # self._controller._parent._parent.label_instruction.setText("PASS")
-        # self._controller._parent.update("PASS")
+        # self._worker._parent._parent.label_instruction.setText("PASS")
+        # self._worker._parent.update("PASS")
 
         #  7B 90 01 F4 01 7D 0A
-        serialInst = serial.Serial()    
+        self.serialInst = serial.Serial()    
         # val = input("SELECT PORT : ")   
-        # cb_port_qc = qc_ports.currentData.itemData(self._controller._parent._parent.port_qc.currentIndex())
-        qc_ports:QComboBox = self._controller._parent._parent.port_qc   
+        # cb_port_qc = qc_ports.currentData.itemData(self._worker._parent._parent.port_qc.currentIndex())
+        qc_ports:QComboBox = self._worker._parent._parent.port_qc   
         port_text = qc_ports.itemText(qc_ports.currentIndex())
-        selected_port = port_text[port_text.index("(")+1 : port_text.index(")")]
+        self.selected_port = port_text[port_text.index("(")+1 : port_text.index(")")]
 
-        serialInst.baudrate = QC_PORT_SERIAL_BAUDRATE
-        serialInst.port = selected_port
-        serialInst.bytesize = 8
-        serialInst.timeout = 10
-        serialInst.stopbits= serial.STOPBITS_ONE
-        serialInst.open()
-
+        self.serialInst.port = self.selected_port
+        self.serialInst.baudrate = QC_PORT_SERIAL_BAUDRATE
+        self.serialInst.bytesize = 8
+        self.serialInst.timeout = 10
+        self.serialInst.stopbits= serial.STOPBITS_ONE
+        self.serialInst.open()
         list_buffer = []
-        serialInst.write(b"{P?}")
-
+        self.serialInst.write(b"{P?}")
          
         timeout = time.time() + 5 #in second 
         
@@ -107,63 +105,70 @@ class QC_STATE_TEST_POWER_RAIL(State):
             flag = 0
             if flag == 1 or time.time() > timeout:
                 print("there's no data recieved")
-                self._controller._parent.handleNG()
+                self._worker._parent._parent.button_start.setEnabled(True)
+                # self._worker._parent.handleNG()
+                self.serialInst.close()
                 return 
-            if serialInst.in_waiting:
-                data1 = serialInst.read()
-                list_buffer.append(data1)
+            
+            if self.serialInst.in_waiting:
+                data1 = self.serialInst.read()
+                list_buffer.append(data1.decode('utf-8'))
                 # print(list_buffer)
-                if list_buffer[-1] == b"}":
-                    print("out of loop")
-                    val1 = list_buffer[1:3]
-                    val2 = list_buffer[3:5]
-                    byte1, byte2 = val1 
-                    byte3, byte4 = val2 
-                    # print(byte1)
-                    # print(byte2)
-                    data_int1 = int.from_bytes(byte1+byte2, 'little')
-                    data_int2 = int.from_bytes(byte3+byte4, 'little')
-                    self._controller._parent._parent.value_test_power.setText(f"Value1 : {data_int1}, Value2 : {data_int2}")
-                    print(data_int1)
-                    print(data_int2)    
+                if list_buffer[-1] == "}":
+                    val1 = list_buffer[1:]
+                    val2 = val1[0:-1]
+                    print(val2) 
+                    realVal1 = val2[val2.index(",")+1:]
+                    realVal2 = val2[:val2.index(",")]
+                    
+                    value_str1 = ''.join(realVal1)
+                    value_str2 = ''.join(realVal2)
+                    value1 = int(value_str1)
+                    value2 = int(value_str2)
+                    print(value1)
+                    print(value2)
+                    
                     th1 = 1.6
                     th2 = 1.1
-                    final_val1 = (data_int1/1023) * 1.8
-                    final_val2 = (data_int2/1023) * 1.2
-                    #tes sample 
+                    final_val1 = (value1/1023) * 1.8
+                    final_val2 = (value2/1023) * 1.2
+                    # self._worker._parent._parent.value_test_power.setText(f"Value1 : {str(final_val1)}, Value2 : {str(final_val2)}")  
+                    self._worker._parent._parent.value_test_power.setText(f"Value1 : {final_val1}, Value2 : {final_val2}")  
+                    # tes sample 
                     # if final_val1 > th1 and final_val2 > th2: #test fail value
                     if final_val1 < th1 and final_val2 < th2: #test pass value
                         print("PASS")
-                        self._controller._parent.update("PASS")
+                        self._worker._parent.update("PASS")
                         break
                     else:
                         print("FAIL")
-                        self._controller._parent.update("FAIL")
-                        return self.fail_function()
+                        self._worker._parent.update("FAIL")
+                        # return self.fail_function()
                                 
-                #     self._controller._parent.update("PASS")
+                #     self._worker._parent.update("PASS")
 
         
         print("NEXT step")
             # break
 
         print("QC_STATE_TEST_POWER_RAIL wants to next State")
-        time.sleep(3)
+        time.sleep(2)
         self.context.setState(QC_STATE_SENSOR(Worker))     
         
     def fail_function(self) -> None:
         pass
 
 class QC_STATE_SENSOR(State):
-    def __init__(self, controller):
-        self._controller = controller
+    def __init__(self, worker):
+        self._worker = worker
         
     def pass_function(self) -> None:
-        # self._controller._parent._parent.pass_button.setStyleSheet("background-color: {}".format("#fff"))
+        # self._worker._parent._parent.pass_button.setStyleSheet("background-color: {}".format("#fff"))
         print("STATE : QC_STATE_TEST_SENSOR.")
-        self._controller._parent._parent.label_instruction.setText("TESTING SENSOR")
-        time.sleep(2)
-        self._controller._parent._parent.label_instruction.setText("PASS")
+        self._worker._parent._parent.label_instruction.setText("TESTING SENSOR")
+        # time.sleep(2)
+        
+        self._worker._parent._parent.label_instruction.setText("PASS")
         time.sleep(2)
         print("QC_STATE_TEST_SENSOR wants to change to next state.")
 
@@ -172,15 +177,15 @@ class QC_STATE_SENSOR(State):
         
         
 class QC_STATE_TAMPER(State):
-    def __init__(self, controller):
-        self._controller = controller
+    def __init__(self, worker):
+        self._worker = worker
         
     def pass_function(self) -> None:
-        # self._controller._parent._parent.pass_button.setStyleSheet("background-color: {}".format("#fff"))
+        # self._worker._parent._parent.pass_button.setStyleSheet("background-color: {}".format("#fff"))
         print("STATE : QC_STATE_TEST_TAMPER.")
-        self._controller._parent._parent.label_instruction.setText("TESTING TAMPER & PRESS THE BUTTON IN 3 SECONDS")
+        self._worker._parent._parent.label_instruction.setText("TESTING TAMPER & PRESS THE BUTTON IN 3 SECONDS")
         time.sleep(2)
-        # self._controller._parent._parent.label_instruction.setText("FAIL")
+        # self._worker._parent._parent.label_instruction.setText("FAIL")
 
         
         print("QC_STATE_TEST_TAMPER wants to change to next state.")
@@ -189,15 +194,15 @@ class QC_STATE_TAMPER(State):
         pass
         
 class QC_STATE_MODEM_ON(State):
-    def __init__(self, controller):
-        self._controller = controller
+    def __init__(self, worker):
+        self._worker = worker
         
     def pass_function(self) -> None:
-        # self._controller._parent._parent.pass_button.setStyleSheet("background-color: {}".format("#fff"))
+        # self._worker._parent._parent.pass_button.setStyleSheet("background-color: {}".format("#fff"))
         print("STATE : QC_STATE_MODEM_ON.") 
-        self._controller._parent._parent.label_instruction.setText("MODEM ON")
+        self._worker._parent._parent.label_instruction.setText("MODEM ON")
         time.sleep(2)
-        self._controller._parent._parent.label_instruction.setText("PASS")
+        self._worker._parent._parent.label_instruction.setText("PASS")
 
         print("QC_STATE_MODEM ON wants to change to next state.")
 
@@ -206,15 +211,15 @@ class QC_STATE_MODEM_ON(State):
         
         
 class QC_STATE_SIMCARD(State):
-    def __init__(self, controller):
-        self._controller = controller
+    def __init__(self, worker):
+        self._worker = worker
         
     def pass_function(self) -> None:
-        # self._controller._parent._parent.pass_button.setStyleSheet("background-color: {}".format("#fff"))
+        # self._worker._parent._parent.pass_button.setStyleSheet("background-color: {}".format("#fff"))
         print("STATE : QC_STATE_SIMCARD.") 
-        self._controller._parent._parent.label_instruction.setText("TESTING SIMCARD")
+        self._worker._parent._parent.label_instruction.setText("TESTING SIMCARD")
         time.sleep(2)
-        self._controller._parent._parent.label_instruction.setText("PASS")
+        self._worker._parent._parent.label_instruction.setText("PASS")
 
         print("QC_STATE_SIMCARD wants to change to next state.")
 
@@ -223,15 +228,15 @@ class QC_STATE_SIMCARD(State):
         
         
 class QC_STATE_SIGNAL(State):
-    def __init__(self, controller):
-        self._controller = controller
+    def __init__(self, worker):
+        self._worker = worker
         
     def pass_function(self) -> None:
-        # self._controller._parent._parent.pass_button.setStyleSheet("background-color: {}".format("#fff"))
+        # self._worker._parent._parent.pass_button.setStyleSheet("background-color: {}".format("#fff"))
         print("STATE : QC_STATE_SIGNAL.") 
-        self._controller._parent._parent.label_instruction.setText("TESTING SIGNAL")
+        self._worker._parent._parent.label_instruction.setText("TESTING SIGNAL")
         time.sleep(2)
-        self._controller._parent._parent.label_instruction.setText("PASS")
+        self._worker._parent._parent.label_instruction.setText("PASS")
 
         print("QC_STATE_SIGNAL wants to change to next state.")
 
@@ -265,10 +270,9 @@ class Worker(QRunnable):
         standby.pass_function()
         test_power_rail.pass_function()
         update_status_test_power = self._parent._parent.label_instruction.text()
-        # print(update_status_test_power)
+
         
         if update_status_test_power == "PASS":
-            self._parent._parent.value_test_power.setText("PASS")
             self._parent._parent.value_test_sensor.setText("ON GOING")
             test_sensor.pass_function()
             

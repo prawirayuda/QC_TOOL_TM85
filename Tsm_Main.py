@@ -19,13 +19,15 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QProgressBar,
     QPlainTextEdit,
+    QDialog, 
+    QDialogButtonBox,
     QFrame,
     QPushButton)
 from PyQt5.QtCore import pyqtSignal , Qt, pyqtSlot
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, QRunnable, QThreadPool
 from Tsm_Controller import Controller
 from Tsm_Serial import SerialUtil
-from Tsm_Worker import QC_STATE_TEST_POWER_RAIL
+from PyQt5.QtGui import QColor, QFont, QIcon
 
 class TaskRow(IntEnum):
 
@@ -47,17 +49,60 @@ class ComboBox(QComboBox):
         self.clicked.emit()
         return super().showPopup()
     
+class TMDialog(QDialog):
+    def __init__(self, name, *args, **kwargs):
+        super(self.__class__, self).__init__()
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self._layout = QVBoxLayout()
+        self.setLayout(self._layout)
+        
+        self.setWindowTitle(name)
+        self.setWindowFlags(Qt.WindowTitleHint |  Qt.WindowMinimizeButtonHint | Qt.WindowSystemMenuHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
+
+        self.dialogButtons =QDialogButtonBox(QDialogButtonBox.Ok)
+        self.dialogButtons.setCenterButtons(True)
+        self.dialogButtons.accepted.connect(self.accept)
+
+        self._standarizedFont = QFont("Calibri", 14)
+
+        if "informative_text" in kwargs.keys():
+            self.lblInformation = QLabel()
+            self.lblInformation.setText(kwargs['informative_text'])
+            self.lblInformation.setFont(self._standarizedFont)
+            self.lblInformation.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+            self.lblInformation.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self._layout.addWidget(self.lblInformation)
+
+        if "additional_text" in kwargs.keys():
+            self.lblAdditional = QLabel()
+            self.lblAdditional.setText(kwargs['additional_text'])
+            self.lblAdditional.setFont(self._standarizedFont)
+            self.lblAdditional.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+            self.lblAdditional.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self._layout.addWidget(self.lblAdditional)
+
+        if "detail_text" in kwargs.keys():
+            self.lbldetail = QLabel()
+            self.lbldetail.setText(kwargs['detail_text'])
+            self.lbldetail.setFont(self._standarizedFont)
+            self.lbldetail.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+            self.lbldetail.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self._layout.addWidget(self.lbldetail)
+
+        self._layout.addWidget(self.dialogButtons)
+    
 
 class MainWindow(QMainWindow,QWidget):
     
     my_signal = pyqtSignal()
     
-    def __init__(self, parent = None):
+    def __init__(self, name = None, parent = None):
         super(MainWindow, self).__init__(parent)
         self.setWindowTitle("QC TOOLS")
         self.setFixedSize(600,400)
         self._controller = Controller(self)
         self.parent = parent
+        self.name = name
         
         self.container = QVBoxLayout()
         self.inner = QGridLayout()
@@ -74,11 +119,10 @@ class MainWindow(QMainWindow,QWidget):
         self.port_modem.clicked.connect(self.populate_combo_box_modem_port)
         self.port_qc = ComboBox()
         self.port_qc.addItem("SELECT QC PORT")
-        otherclass = QC_STATE_TEST_POWER_RAIL(self)
-        self.my_signal.connect(otherclass.pass_function)
         self.port_qc.clicked.connect(self.populate_combo_box_qc_tools_port)
         
         self.button_start = QPushButton("START")
+        self.button_start.setEnabled(False)
         self.button_start.clicked.connect(self.button_start_control)
 
         configToTaskDevider = QFrame()
@@ -119,7 +163,7 @@ class MainWindow(QMainWindow,QWidget):
         self.pass_button = QPushButton("PASS")
         self.fail_button = QPushButton("FAIL")
         
-        self.label_instruction = QLabel("SELECT THE PORT FIRST PRESS THE BUTTON START FOR TESTING PROCESS")
+        self.label_instruction = QLabel("SELECT THE PORT FIRST THEN PRESS THE BUTTON START FOR TESTING PROCESS")
         self.label_instruction.setStyleSheet("border: 1px solid black;")
         self.label_instruction.setAlignment(Qt.AlignCenter)
         
@@ -151,8 +195,16 @@ class MainWindow(QMainWindow,QWidget):
         self.setCentralWidget(widget) 
         
     def button_start_control(self):
-        # self._controller.selected_port = self.port_qc.``
-        self._controller.start_worker()
+        if self.button_start.text() == "START":
+            self.button_start.setEnabled(False)
+            self._controller.start_worker()
+            # self.dialog = TMDialog(self.name, informative_text="Error Message")
+            # self.dialog.exec()
+        # elif self.button_start.text() == "SET": 
+        #     self.button_start.setText("START")                      
+
+            
+       
     
     def populate_combo_box_modem_port(self):
         # print("CLIKC")
@@ -166,7 +218,6 @@ class MainWindow(QMainWindow,QWidget):
             self.port_modem.addItem(item)
 
     def populate_combo_box_qc_tools_port(self):
-        # print("CB FUNC")
         available_ports = SerialUtil.get_serial_ports()      
         
         if self.port_qc.count():
@@ -175,6 +226,11 @@ class MainWindow(QMainWindow,QWidget):
         for port in available_ports:
             item = port["port_name"]
             self.port_qc.addItem(item)
+        self.button_start.setEnabled(True)
+
+
+        
+        
 
 
 

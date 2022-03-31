@@ -1,67 +1,31 @@
-from time import *
-import threading
+# try:
+#   print(x)
+# except:
+#   print("An exception occurred")
+# x = -1
 
-from numpy import byte, true_divide
+# if x < 0:
+#   raise Exception("Sorry, no numbers below zero")
 
-def countdown():
-    global my_time
-    global flag_timer
-    my_time = 10
-    flag_timer = 0
-    
-    
-    for x in range(10):
-        my_time -= 1
-        print(my_time)
-        if my_time == 0:
-            flag_timer = 1    
-            print("timeout")
-        sleep(1) 
-        
-
-countdown_thread = threading.Thread(target= countdown)
-countdown_thread.start()
-byte_rcvd = '}'
+# try:
+#   print(x)
+# except:
+#   print("Something went wrong")
+# finally:
+#   print("The 'try except' is finished")
 
 
 
-while True :
-    if flag_timer == 1:
-        #stop timer
-        print("abc")
-        break
-    if byte_rcvd == '}' :
-        #stop timer 
-        print(byte_rcvd)
-        
-        break
-    
-print("a")
-        # print("run")
-        # sleep(14)
-        # print("testing power rail need 3 seconds")
-        # sleep(10)
-        # # if my_time == 0:
-        # #     break
-        # # if flag_timer == 1 :
-        # #     break
-        # ############
-        # print("run")
-        # sleep(10)
-        # print("Testing sensor")
-        # sleep(2)
-        # # if my_time == 0:
-        # #     break
-        
-        # ############
-        # print("run")
-        # sleep(10)
-        # print("Testing tamper")
-        # sleep(2)
-        # # if my_time == 0:
-        # #     break
-    
-    
-    
-    
-# print("time up , goes to timeout")
+
+l1 = ["eat","sleep","repeat"]
+s1 = "geek"
+ 
+# creating enumerate objects
+obj1 = enumerate(l1)
+obj2 = enumerate(s1)
+ 
+print ("Return type:",type(obj1))
+print (list(enumerate(l1,1)))
+ 
+# changing start index to 2 from 0
+print (list(enumerate(s1,1)))
