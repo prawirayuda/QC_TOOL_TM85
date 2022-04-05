@@ -35,7 +35,7 @@ class TaskRow(IntEnum):
     TEST_POWER_RAIL = auto()
     TEST_SENSOR = auto()
     TEST_TAMPER = auto()
-    MODEM_ON = auto()
+    # MODEM_ON = auto()
     TEST_SIMCARD = auto()
     TEST_SIGNAL = auto()
     
@@ -180,8 +180,8 @@ class MainWindow(QMainWindow,QWidget):
         self.task_container.addWidget(self.value_test_sensor,TaskRow.TEST_SENSOR,1)
         self.task_container.addWidget(self.label_test_tamper,TaskRow.TEST_TAMPER,0)
         self.task_container.addWidget(self.value_test_tamper,TaskRow.TEST_TAMPER,1)
-        self.task_container.addWidget(self.label_test_modem_on,TaskRow.MODEM_ON,0)
-        self.task_container.addWidget(self.value_test_modem_on,TaskRow.MODEM_ON,1)
+        # self.task_container.addWidget(self.label_test_modem_on,TaskRow.MODEM_ON,0)
+        # self.task_container.addWidget(self.value_test_modem_on,TaskRow.MODEM_ON,1)
         self.task_container.addWidget(self.label_test_simcard,TaskRow.TEST_SIMCARD,0)
         self.task_container.addWidget(self.value_test_simcard,TaskRow.TEST_SIMCARD,1)
         self.task_container.addWidget(self.label_test_signal,TaskRow.TEST_SIGNAL,0)
@@ -198,6 +198,8 @@ class MainWindow(QMainWindow,QWidget):
         if self.button_start.text() == "START":
             self.button_start.setEnabled(False)
             self._controller.start_worker()
+            print(self.port_modem.currentData())
+            
             # self.dialog = TMDialog(self.name, informative_text="Error Message")
             # self.dialog.exec()
         # elif self.button_start.text() == "SET": 
@@ -214,8 +216,8 @@ class MainWindow(QMainWindow,QWidget):
             for index in range(0, self.port_modem.count()):
                 self.port_modem.removeItem(index)
         for port in available_ports:
-            item = port["port_name"]
-            self.port_modem.addItem(item)
+            # item = port["port_name"]
+            self.port_modem.addItem(port["port_name"], port["port"])
 
     def populate_combo_box_qc_tools_port(self):
         available_ports = SerialUtil.get_serial_ports()      

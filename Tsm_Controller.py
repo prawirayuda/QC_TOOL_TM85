@@ -63,6 +63,7 @@ class Controller:
             self._parent.pass_button.setStyleSheet('background: palette(window)')
             self._parent.fail_button.setStyleSheet('background: palette(window)')
             self._parent.button_start.setEnabled(True)
+            
         
         
 
