@@ -4,6 +4,7 @@ from enum import IntEnum, auto
 import time
 from enum import IntEnum, auto
 import sys
+import os
 from PyQt5.QtWidgets import *
 import time
 from threading import *
@@ -27,7 +28,8 @@ from PyQt5.QtCore import pyqtSignal , Qt, pyqtSlot
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, QRunnable, QThreadPool
 from Tsm_Controller import Controller
 from Tsm_Serial import SerialUtil
-from PyQt5.QtGui import QColor, QFont, QIcon
+from PyQt5.QtGui import QColor, QFont, QIcon, QFontDatabase
+
 
 class TaskRow(IntEnum):
 
@@ -99,7 +101,8 @@ class MainWindow(QMainWindow,QWidget):
     def __init__(self, name = None, parent = None):
         super(MainWindow, self).__init__(parent)
         self.setWindowTitle("QC TOOLS")
-        self.setFixedSize(600,400)
+        self.setStyleSheet(stylesheet(self))
+        self.setFixedSize(900,600)
         self._controller = Controller(self)
         self.parent = parent
         self.name = name
@@ -107,16 +110,32 @@ class MainWindow(QMainWindow,QWidget):
         self.container = QVBoxLayout()
         self.inner = QGridLayout()
         self.task_container = QGridLayout()
+        self.task_container.setSpacing(40)
         self.label_instruction_container = QHBoxLayout()
+        self.label_error_container = QHBoxLayout()
         self.pass_fail_container = QHBoxLayout()
         self.container.addLayout(self.inner)
         self.container.addLayout(self.task_container)
         self.container.addLayout(self.label_instruction_container)
+        self.container.addLayout(self.label_error_container)
         self.container.addLayout(self.pass_fail_container)
-        self.label_modem_port = QLabel("MODEM PORT     :")
+        #setting font 
+        CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+        # print(CURRENT_DIRECTORY)
+        
+        font_path = os.path.join(CURRENT_DIRECTORY, "Roboto", "Roboto-Bold.ttf")
+        print(font_path)
+        _id =QFontDatabase.addApplicationFont(font_path)
+        font = QFont('Roboto')
+        
+        #not used
         self.label_qctool_port = QLabel("QC TOOLS PORT :")
-        self.port_modem = ComboBox()
-        self.port_modem.clicked.connect(self.populate_combo_box_modem_port)
+        self.label_qctool_port.setFont(font)
+        self.label_qctool_port.setStyleSheet("""
+                                             font-size : 16px;
+                                             """)
+        #not used
+        
         self.port_qc = ComboBox()
         self.port_qc.addItem("SELECT QC PORT")
         self.port_qc.clicked.connect(self.populate_combo_box_qc_tools_port)
@@ -130,6 +149,7 @@ class MainWindow(QMainWindow,QWidget):
         configToTaskDevider.setFrameShape(QFrame.HLine)   
 
         self.label_test_power = QLabel("TEST POWER")
+        self.label_test_power.setFont(font)
         self.label_test_power.setAlignment(Qt.AlignCenter)
         self.value_test_power = QLabel("N/A")
         self.value_test_power.setAlignment(Qt.AlignCenter)
@@ -159,18 +179,39 @@ class MainWindow(QMainWindow,QWidget):
         self.value_test_signal = QLabel("N/A")
         self.value_test_signal.setAlignment(Qt.AlignCenter)
 
-
         self.pass_button = QPushButton("PASS")
-        self.fail_button = QPushButton("FAIL")
+        self.pass_button.setEnabled(False)
+        self.pass_button.setStyleSheet("""
+                                       QPushButton{
+                                           background-color:#D9E3DA;
+                                           border: 1px solid black;
+                                       }
+                                       """)
         
-        self.label_instruction = QLabel("SELECT THE PORT FIRST THEN PRESS THE BUTTON START FOR TESTING PROCESS")
-        self.label_instruction.setStyleSheet("border: 1px solid black;")
+        self.fail_button = QPushButton("FAIL")
+        self.fail_button.setEnabled(False)
+        self.fail_button.setFont(QFont('Times',12))
+        self.fail_button.setStyleSheet("""
+                                       QPushButton{
+                                           background-color:#D9E3DA;
+                                           border: 1px solid black;
+                                       }
+                                       """)        
+        
+        self.label_instruction = QLabel("SELECT THE PORT FIRST")
+        self.label_instruction.setStyleSheet("""border: 1px solid black;
+                                                border-radius:5px;""")
         self.label_instruction.setAlignment(Qt.AlignCenter)
         
-        self.inner.addWidget(self.label_modem_port,0,0)
-        self.inner.addWidget(self.label_qctool_port,1,0)
-        self.inner.addWidget(self.port_modem, 0,1,1,2)
-        self.inner.addWidget(self.port_qc, 1,1,1,2)
+        self.label_error = QLabel("ERROR MESSAGE")
+        self.label_error.setStyleSheet("""border: 1px solid black;
+                                            border-radius:5px""")
+        self.label_error.setAlignment(Qt.AlignCenter)
+        
+        # self.inner.addWidget(self.label_modem_port,0,0)
+        self.inner.addWidget(self.label_qctool_port,0,0,2,0)
+        # self.inner.addWidget(self.port_modem, 0,1,1,2)
+        self.inner.addWidget(self.port_qc, 0,1,2,2)
         self.inner.addWidget(self.button_start,0,3,2,1)
         
         self.inner.addWidget(configToTaskDevider,TaskRow.LINE,0,1,4)
@@ -187,6 +228,7 @@ class MainWindow(QMainWindow,QWidget):
         self.task_container.addWidget(self.label_test_signal,TaskRow.TEST_SIGNAL,0)
         self.task_container.addWidget(self.value_test_signal,TaskRow.TEST_SIGNAL,1)
         self.label_instruction_container.addWidget(self.label_instruction)
+        self.label_error_container.addWidget(self.label_error)
         self.pass_fail_container.addWidget(self.pass_button)
         self.pass_fail_container.addWidget(self.fail_button)
         
@@ -198,7 +240,7 @@ class MainWindow(QMainWindow,QWidget):
         if self.button_start.text() == "START":
             self.button_start.setEnabled(False)
             self._controller.start_worker()
-            print(self.port_modem.currentData())
+            # print(self.port_modem.currentData())
             
             # self.dialog = TMDialog(self.name, informative_text="Error Message")
             # self.dialog.exec()
@@ -229,10 +271,43 @@ class MainWindow(QMainWindow,QWidget):
             item = port["port_name"]
             self.port_qc.addItem(item)
         self.button_start.setEnabled(True)
+      
+def stylesheet(self):
+    return """
+    QMainWindow{
+                background-color: #D9E3DA;        
+    }
+
+    QLabel{
+            font: bold 14px Roboto;
+            color:#0B002A;
+    }  
 
 
-        
-        
+    ComboBox{
+        background-color:white;
+        padding:10px;
+        font-family: Poppins;
+        font-size: 10pt;
+    }
+    QPushButton#pass_button {
+        color: blue;
+        font-weight: bold;
+    }
+
+    QPushButton{
+        background-color:#0078D7;
+        color : #050F03;
+        border-radius: 8px;
+        padding:8px;
+        font: bold 24px Open Sans;
+    }
+    
+    QPushButton::hover{
+        background-color:#15a2d7;     
+    }
+
+"""        
 
 
 

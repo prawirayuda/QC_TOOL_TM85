@@ -107,61 +107,59 @@ class SerialAT:
 
 
         
-    def tes_simcard(self):        
-        # print("tes")
-        tes = SerialAT("COM33", 115200)
-        for i in range(5):
-            at_res = tes.exchange_at("AT+CPIN?\r", "READY", False, 1000)
-            # print(at_res)
-            if type(at_res) is int:
-                if at_res == -1:
-                    print("ERROR")
-                    return
-            if at_res["Status"] == "OK":
-                print("OK SIMCARD")
-                break
-            else:
-                print('no sim card ')
-                if i == 4:
-                    print("FAILED")
-                    return
-                else:
+    # def tes_simcard(self):        
+    #     # print("tes")
+    #     tes = SerialAT("COM33", 115200)
+    #     for i in range(5):
+    #         at_res = tes.exchange_at("AT+CPIN?\r", "READY", False, 1000)
+    #         # print(at_res)
+    #         if type(at_res) is int:
+    #             if at_res == -1:
+    #                 print("ERROR")
+    #                 return
+    #         if at_res["Status"] == "OK":
+    #             print("OK SIMCARD")
+    #             break
+    #         else:
+    #             print('no sim card ')
+    #             if i == 4:
+    #                 print("FAILED")
+    #                 return
+    #             else:
                     
-                    print("RETRY")
-                    continue
+    #                 print("RETRY")
+    #                 continue
                 
     
     
-    def set_at_ret(self, str):
-        self.at_ret = str
+    # def set_at_ret(self, str):
+    #     self.at_ret = str
     
-    def tes_signal(self):        
-        # print("tes")
-       tes = SerialAT("COM33", 115200)  
-       for i in range(5):
-        at_res = tes.exchange_at("AT+CSQ\r","+CSQ: " , True, 1000, self.set_at_ret, None)
-        # print(type(at_res['Status']))
-        # print(at_res['Status'])
-        value_str = at_res['Value']
-        status_str = at_res['Status']
-        # print(type(value_str))
-        list_val = value_str.replace(",", ".")
-        # print(list_val[6:])
-        value_signal = list_val[6:8]
-        csq_int = int(value_signal)
+    # def tes_signal(self):        
+    #     # print("tes")
+    #    tes = SerialAT("COM33", 115200)  
+    #    for i in range(5):
+    #     at_res = tes.exchange_at("AT+CSQ\r","+CSQ: " , True, 1000, self.set_at_ret, None)
+    #     # print(type(at_res['Status']))
+    #     # print(at_res['Status'])
+    #     value_str = at_res['Value']
+    #     status_str = at_res['Status']
+    #     # print(type(value_str))
+    #     list_val = value_str.replace(",", ".")
+    #     # print(list_val[6:])
+    #     value_signal = list_val[6:8]
+    #     csq_int = int(value_signal)
         
-        if csq_int > 10 and csq_int < 31:
-            print("OK")
-            break
-        else:
-            print("ERROR")
+    #     if csq_int > 10 and csq_int < 31:
+    #         print("OK")
+    #         break
+    #     else:
+    #         print("ERROR")
             
     def asign_to_gsm(self):
         pass
         
-        # tes = SerialAT(self.selected_port, 115200)
-        # at_res = tes.exchange_at("AT+CSQ\r","+CSQ: " , True, 1000, self.set_at_ret, None)
-        # # print(at_res['Value'])
+         # # print(at_res['Value'])
 
         
 if __name__ =="__main__":
