@@ -172,7 +172,92 @@ class QC_STATE_TEST_POWER_RAIL(State):
         
     def fail_function(self) -> None:
         pass
+    
+    
+class QC_STATE_TEST_CRYSTAL(State):  
+    def __init__(self, worker):
+        self._worker = worker
+    
+    def pass_function(self) -> None:
+        try:  
+            print("STATE : QC_STATE_TEST_CRYSTAL.")
+            self._worker._parent._parent.label_instruction.setText("TESTING CRYSTAL")
+            #  7B 90 01 F4 01 7D 0A
+            self.serialInst = serial.Serial()    
+            # val = input("SELECT PORT : ")   
+            # cb_port_qc = qc_ports.currentData.itemData(self._worker._parent._parent.port_qc.currentIndex())
+            # try:
+            qc_ports:QComboBox = self._worker._parent._parent.port_qc   
+            port_text = qc_ports.itemText(qc_ports.currentIndex())
+            try:
+                self.selected_port = port_text[port_text.index("(")+1 : port_text.index(")")]
+                self.serialInst.port = self.selected_port
+            except Exception as e:
+                self._worker._parent._parent.label_error.setText("ERROR : NO PORT DETECTED")
+                print(f"ini {e}")
+                
+            self.serialInst.baudrate = QC_PORT_SERIAL_BAUDRATE
+            self.serialInst.bytesize = QC_BYTESIZE
+            self.serialInst.timeout = QC_SERIAL_TIMEOUT
+            self.serialInst.stopbits= serial.STOPBITS_ONE
+            self.serialInst.open()
+            list_buffer = []
+            self.serialInst.write(b"{X?}")    
+            timeout = time.time() + 5 #in second 
+                
+            while True:
+                try:
+                    flag = 0
+                    if flag == 1 or time.time() > timeout:
+                        print("there's no data recieved")
+                        self._worker._parent._parent.value_test_power.setText(f"TIMEOUT...") 
+                        self._worker._parent._parent.label_error.setText("ERROR MESSAGE : TIMEOUT...")
+                        self._worker._parent.update_label_test_power("FAIL")
+                        time.sleep(2)
+                        self._worker._parent.handleNG()
+                        self.serialInst.close()
+                        return 
 
+                    if self.serialInst.in_waiting:
+                        data = self.serialInst.read()
+                        list_buffer.append(data.decode('utf-8'))
+                        print(list_buffer)
+                        try:
+                            if list_buffer[-1] == "}":
+                                val1 = list_buffer[1:]
+                                val2 = val1[2:-1]
+                                print(val2)
+
+                                if val2 == "OK":
+                                    print("PASS")
+                                    self._worker._parent.update_label_test_crystal("PASS")
+                                    self._worker._parent._parent.value_test_crystal.setText(f"VALUE TEST CRYSTAL: {val2}")  
+                                    break
+                                else:
+                                    print("FAIL")
+                                    self._worker._parent.update_label_test_crystal("FAIL")
+                                    self._worker._parent._parent.value_test_crystal.setText(f"VALUE TEST CRYSTAL: {val2}")  
+                                    self.serialInst.close()
+                                    #wait till timeout
+                                    time.sleep(2)
+                        
+                        except Exception as e:
+                            self._worker._parent._parent.label_error.setText(f"ERROR INPUT FROM MCU : {e}")
+                            # print(f"ini {e}")
+                        
+                except Exception as e:
+                    self._worker._parent._parent.label_error.setText(f"ERROR : INVALID VALUE POWER RAIL")
+                    print(e)
+                        
+            print("QC_STATE_CRYSTAL wants to next State")
+            time.sleep(1)
+        except serial.SerialException as e:
+            self._worker._parent._parent.label_error.setText(f"ERROR MESSAGE : {e}")
+            self.serialInst.close()
+            
+        
+    def fail_function(self) -> None:
+        pass
 
 
 class QC_STATE_SENSOR(State):

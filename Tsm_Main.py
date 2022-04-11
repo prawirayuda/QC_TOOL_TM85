@@ -41,6 +41,7 @@ class TaskRow(IntEnum):
     # MODEM_ON = auto()
     TEST_SIMCARD = auto()
     TEST_SIGNAL = auto()
+    TES = auto()
     
 class ComboBox(QComboBox):
     clicked = pyqtSignal()
@@ -102,7 +103,8 @@ class MainWindow(QMainWindow,QWidget):
     def __init__(self, name = None, parent = None):
         super(MainWindow, self).__init__(parent)
         self.setWindowTitle("QC TOOLS")
-        self.setStyleSheet(stylesheet(self))
+        # self.setStyleSheet(stylesheet(self))
+        self.setStyleSheet(open("style.qss", "r").read())
         self.setFixedSize(900,600)
         self._controller = Controller(self)
         self.parent = parent
@@ -122,8 +124,7 @@ class MainWindow(QMainWindow,QWidget):
         self.container.addLayout(self.pass_fail_container)
         #setting font 
         CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-        # print(CURRENT_DIRECTORY)
-        
+
         font_path = os.path.join(CURRENT_DIRECTORY, "Roboto", "Roboto-Bold.ttf")
         _id =QFontDatabase.addApplicationFont(font_path)
         font = QFont('Roboto')   
@@ -148,46 +149,59 @@ class MainWindow(QMainWindow,QWidget):
         configToTaskDevider = QFrame()
         configToTaskDevider.setFrameShadow(QFrame.Sunken)
         configToTaskDevider.setFrameShape(QFrame.HLine)   
-
         self.label_test_power = QLabel("TEST POWER")
+        self.label_test_power.setObjectName("label_test")
         self.label_test_power.setFont(font)
         self.label_test_power.setAlignment(Qt.AlignCenter)
         self.value_test_power = QLabel("N/A")
+        self.value_test_power.setObjectName("label_test")
         self.value_test_power.setAlignment(Qt.AlignCenter)
         
         self.label_test_crystal = QLabel("TEST CRYSTAL")
-        self.label_test_crystal.setFont(font)
+        self.label_test_crystal.setObjectName("label_test")
         self.label_test_crystal.setAlignment(Qt.AlignCenter)
         self.value_test_crystal = QLabel("N/A")
+        self.value_test_crystal.setObjectName("label_test")
         self.value_test_crystal.setAlignment(Qt.AlignCenter)
         
 
         self.label_test_sensor = QLabel("TEST SENSOR")
+        self.label_test_sensor.setObjectName("label_test")
         self.label_test_sensor.setAlignment(Qt.AlignCenter)
         self.value_test_sensor = QLabel("N/A")
+        self.value_test_sensor.setObjectName("label_test")
         self.value_test_sensor.setAlignment(Qt.AlignCenter)
 
         self.label_test_tamper = QLabel("TEST TAMPER")
+        self.label_test_tamper.setObjectName("label_test")
         self.label_test_tamper.setAlignment(Qt.AlignCenter)
         self.value_test_tamper = QLabel("N/A")
+        self.value_test_tamper.setObjectName("label_test")
         self.value_test_tamper.setAlignment(Qt.AlignCenter)
         
         self.label_test_modem_on = QLabel("MODEM ON")
+        self.label_test_modem_on.setObjectName("label_test")
         self.label_test_modem_on.setAlignment(Qt.AlignCenter)
         self.value_test_modem_on = QLabel("N/A")
+        self.value_test_modem_on.setObjectName("label_test")
         self.value_test_modem_on.setAlignment(Qt.AlignCenter)
 
         self.label_test_simcard = QLabel("TEST SIMCARD")
+        self.label_test_simcard.setObjectName("label_test")
         self.label_test_simcard.setAlignment(Qt.AlignCenter)
         self.value_test_simcard = QLabel("N/A")
+        self.value_test_simcard.setObjectName("label_test")
         self.value_test_simcard.setAlignment(Qt.AlignCenter)
 
         self.label_test_signal = QLabel("TEST SIGNAL")
+        self.label_test_signal.setObjectName("label_test")
         self.label_test_signal.setAlignment(Qt.AlignCenter)
         self.value_test_signal = QLabel("N/A")
+        self.value_test_signal.setObjectName("label_test")
         self.value_test_signal.setAlignment(Qt.AlignCenter)
 
         self.pass_button = QPushButton("PASS")
+        self.pass_button.setObjectName("pass_fail_btn")
         self.pass_button.setEnabled(False)
         self.pass_button.setStyleSheet("""
                                        QPushButton{
@@ -197,8 +211,8 @@ class MainWindow(QMainWindow,QWidget):
                                        """)
         
         self.fail_button = QPushButton("FAIL")
+        self.pass_button.setObjectName("pass_fail_btn")
         self.fail_button.setEnabled(False)
-        self.fail_button.setFont(QFont('Times',12))
         self.fail_button.setStyleSheet("""
                                        QPushButton{
                                            background-color:#D9E3DA;
@@ -210,14 +224,14 @@ class MainWindow(QMainWindow,QWidget):
         self.label_instruction.setStyleSheet("""border: 1px solid black;
                                                 border-radius:5px;
                                                 background-color:#fff;
-                                                font-size: 20px;""")
+                                                font-size: 18px;""")
         self.label_instruction.setAlignment(Qt.AlignCenter)
         
         self.label_error = QLabel("ERROR MESSAGE : N/A")
         self.label_error.setStyleSheet("""border: 1px solid black;
                                             border-radius:5px;
                                             background-color:#fff;
-                                            font-size: 20px;""")
+                                            font-size: 18px;""")
         self.label_error.setAlignment(Qt.AlignCenter)
         self.inner.addWidget(self.label_qctool_port,0,0,2,0)
         self.inner.addWidget(self.port_qc, 0,1,2,2)
@@ -277,42 +291,7 @@ class MainWindow(QMainWindow,QWidget):
             self.port_qc.addItem(item)
         self.button_start.setEnabled(True)
       
-def stylesheet(self):
-    return """
-    QMainWindow{
-                background-color: #D9E3DA;        
-    }
 
-    QLabel{
-            font: bold 14px Roboto;
-            color:#0B002A;
-    }  
-
-
-    QComboBox{
-        background-color:#fff;
-        padding:10px;
-        font-family: Poppins;
-        font-size: 10pt;
-    }
-    QPushButton#pass_button {
-        color: blue;
-        font-weight: bold;
-    }
-
-    QPushButton{
-        background-color:#0078D7;
-        color : #050F03;
-        border-radius: 8px;
-        padding:8px;
-        font: bold 24px Open Sans;
-    }
-    
-    QPushButton::hover{
-        background-color:#15a2d7;     
-    }
-
-"""        
 
 
 

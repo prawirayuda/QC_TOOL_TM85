@@ -35,6 +35,13 @@ class Controller:
         elif update_str == "FAIL":
             self._parent.label_test_power.setStyleSheet("background-color: {}".format("#fe1818"))
 
+    def update_label_test_crystal(self, update_str):
+        self._parent.label_instruction.setText(update_str)
+        if update_str =="PASS":
+            self._parent.label_test_power.setStyleSheet("background-color: {}".format("#86b721"))
+        elif update_str == "FAIL":
+            self._parent.label_test_power.setStyleSheet("background-color: {}".format("#fe1818"))
+
     def update_label_test_sensor(self, update_str):
         self._parent.label_instruction.setText(update_str)
         if update_str =="PASS":
@@ -77,6 +84,7 @@ class Controller:
             self._parent.value_test_tamper.setText("N/A")
             self._parent.value_test_simcard.setText("N/A")
             self._parent.value_test_signal.setText("N/A")
+            self._parent.label_error.setText("ERROR MESSAGE : N/A")
             self._parent.label_test_power.setStyleSheet("background-color:#D9E3DA;")
             self._parent.label_test_sensor.setStyleSheet("background-color:#D9E3DA;")
             self._parent.label_test_tamper.setStyleSheet("background-color:#D9E3DA;")

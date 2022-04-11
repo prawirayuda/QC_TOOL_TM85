@@ -1,0 +1,39 @@
+QMainWindow{
+            background-color: #D9E3DA;        
+}
+
+QLabel{
+        font-family: Open Sans;
+        color:#0B002A;
+        font-size: 14px;
+        font-weight:600;
+
+}   
+
+QLabel#label_test{
+    font-size:20px;
+    color:#0b002a;
+}
+
+QComboBox{
+    background-color:#fff;
+    padding:10px;
+    font-family: Poppins;
+    font-size: 10pt;
+    font-weight:400;
+}
+QPushButton#pass_fail_btn{
+    font-weight: 700;
+}
+
+QPushButton{
+    background-color:#0078D7;
+    color : #050F03;
+    border-radius: 8px;
+    padding:8px;
+    font: bold 24px Open Sans;
+}
+
+QPushButton::hover{
+    background-color:#15a2d7;     
+}
