@@ -35,6 +35,7 @@ class TaskRow(IntEnum):
 
     LINE = 2
     TEST_POWER_RAIL = auto()
+    TEST_CRYSTAL = auto()
     TEST_SENSOR = auto()
     TEST_TAMPER = auto()
     # MODEM_ON = auto()
@@ -65,7 +66,7 @@ class TMDialog(QDialog):
         self.dialogButtons.setCenterButtons(True)
         self.dialogButtons.accepted.connect(self.accept)
 
-        self._standarizedFont = QFont("Calibri", 14)
+        self._standarizedFont = QFont("Roboto", 11)
 
         if "informative_text" in kwargs.keys():
             self.lblInformation = QLabel()
@@ -124,19 +125,19 @@ class MainWindow(QMainWindow,QWidget):
         # print(CURRENT_DIRECTORY)
         
         font_path = os.path.join(CURRENT_DIRECTORY, "Roboto", "Roboto-Bold.ttf")
-        print(font_path)
         _id =QFontDatabase.addApplicationFont(font_path)
-        font = QFont('Roboto')
-        
-        #not used
+        font = QFont('Roboto')   
         self.label_qctool_port = QLabel("QC TOOLS PORT :")
         self.label_qctool_port.setFont(font)
         self.label_qctool_port.setStyleSheet("""
                                              font-size : 16px;
                                              """)
-        #not used
-        
+
         self.port_qc = ComboBox()
+        self.port_qc.setStyleSheet("""
+                                    background-color : #fff;
+                                       
+                                   """)
         self.port_qc.addItem("SELECT QC PORT")
         self.port_qc.clicked.connect(self.populate_combo_box_qc_tools_port)
         
@@ -153,6 +154,13 @@ class MainWindow(QMainWindow,QWidget):
         self.label_test_power.setAlignment(Qt.AlignCenter)
         self.value_test_power = QLabel("N/A")
         self.value_test_power.setAlignment(Qt.AlignCenter)
+        
+        self.label_test_crystal = QLabel("TEST CRYSTAL")
+        self.label_test_crystal.setFont(font)
+        self.label_test_crystal.setAlignment(Qt.AlignCenter)
+        self.value_test_crystal = QLabel("N/A")
+        self.value_test_crystal.setAlignment(Qt.AlignCenter)
+        
 
         self.label_test_sensor = QLabel("TEST SENSOR")
         self.label_test_sensor.setAlignment(Qt.AlignCenter)
@@ -200,29 +208,30 @@ class MainWindow(QMainWindow,QWidget):
         
         self.label_instruction = QLabel("SELECT THE PORT FIRST")
         self.label_instruction.setStyleSheet("""border: 1px solid black;
-                                                border-radius:5px;""")
+                                                border-radius:5px;
+                                                background-color:#fff;
+                                                font-size: 20px;""")
         self.label_instruction.setAlignment(Qt.AlignCenter)
         
-        self.label_error = QLabel("ERROR MESSAGE")
+        self.label_error = QLabel("ERROR MESSAGE : N/A")
         self.label_error.setStyleSheet("""border: 1px solid black;
-                                            border-radius:5px""")
+                                            border-radius:5px;
+                                            background-color:#fff;
+                                            font-size: 20px;""")
         self.label_error.setAlignment(Qt.AlignCenter)
-        
-        # self.inner.addWidget(self.label_modem_port,0,0)
         self.inner.addWidget(self.label_qctool_port,0,0,2,0)
-        # self.inner.addWidget(self.port_modem, 0,1,1,2)
         self.inner.addWidget(self.port_qc, 0,1,2,2)
         self.inner.addWidget(self.button_start,0,3,2,1)
         
         self.inner.addWidget(configToTaskDevider,TaskRow.LINE,0,1,4)
         self.task_container.addWidget(self.label_test_power,TaskRow.TEST_POWER_RAIL,0)
         self.task_container.addWidget(self.value_test_power,TaskRow.TEST_POWER_RAIL,1)
+        self.task_container.addWidget(self.label_test_crystal,TaskRow.TEST_CRYSTAL,0)
+        self.task_container.addWidget(self.value_test_crystal,TaskRow.TEST_CRYSTAL,1)
         self.task_container.addWidget(self.label_test_sensor,TaskRow.TEST_SENSOR,0)
         self.task_container.addWidget(self.value_test_sensor,TaskRow.TEST_SENSOR,1)
         self.task_container.addWidget(self.label_test_tamper,TaskRow.TEST_TAMPER,0)
         self.task_container.addWidget(self.value_test_tamper,TaskRow.TEST_TAMPER,1)
-        # self.task_container.addWidget(self.label_test_modem_on,TaskRow.MODEM_ON,0)
-        # self.task_container.addWidget(self.value_test_modem_on,TaskRow.MODEM_ON,1)
         self.task_container.addWidget(self.label_test_simcard,TaskRow.TEST_SIMCARD,0)
         self.task_container.addWidget(self.value_test_simcard,TaskRow.TEST_SIMCARD,1)
         self.task_container.addWidget(self.label_test_signal,TaskRow.TEST_SIGNAL,0)
@@ -240,15 +249,11 @@ class MainWindow(QMainWindow,QWidget):
         if self.button_start.text() == "START":
             self.button_start.setEnabled(False)
             self._controller.start_worker()
-            # print(self.port_modem.currentData())
             
             # self.dialog = TMDialog(self.name, informative_text="Error Message")
             # self.dialog.exec()
         # elif self.button_start.text() == "SET": 
-        #     self.button_start.setText("START")                      
-
-            
-       
+        #     self.button_start.setText("START")                                      
     
     def populate_combo_box_modem_port(self):
         # print("CLIKC")
@@ -284,8 +289,8 @@ def stylesheet(self):
     }  
 
 
-    ComboBox{
-        background-color:white;
+    QComboBox{
+        background-color:#fff;
         padding:10px;
         font-family: Poppins;
         font-size: 10pt;
