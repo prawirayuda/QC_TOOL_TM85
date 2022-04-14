@@ -14,6 +14,13 @@ QLabel#label_test{
     font-size:20px;
     color:#0b002a;
 }
+QLabel#label_instruction_err{
+    border: 1px solid black;
+    border-radius:5px;
+    background-color:#fff;
+    font-size:18px;
+    font-weight:600px;
+}
 
 QComboBox{
     background-color:#fff;
@@ -24,10 +31,12 @@ QComboBox{
 }
 QPushButton#pass_fail_btn{
     font-weight: 700;
+    background-color:#d9e3da;
+    border: 1px solid black;
 }
 
 QPushButton{
-    background-color:#0078D7;
+    border: 1px solid black;
     color : #050F03;
     border-radius: 8px;
     padding:8px;
@@ -35,5 +44,5 @@ QPushButton{
 }
 
 QPushButton::hover{
-    background-color:#15a2d7;     
+    background-color:#0078D7;     
 }

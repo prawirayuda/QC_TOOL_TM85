@@ -124,21 +124,16 @@ class MainWindow(QMainWindow,QWidget):
         self.container.addLayout(self.pass_fail_container)
         #setting font 
         CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-
         font_path = os.path.join(CURRENT_DIRECTORY, "Roboto", "Roboto-Bold.ttf")
         _id =QFontDatabase.addApplicationFont(font_path)
         font = QFont('Roboto')   
         self.label_qctool_port = QLabel("QC TOOLS PORT :")
-        self.label_qctool_port.setFont(font)
+        # self.label_qctool_port.setFont(font)
         self.label_qctool_port.setStyleSheet("""
                                              font-size : 16px;
                                              """)
 
         self.port_qc = ComboBox()
-        self.port_qc.setStyleSheet("""
-                                    background-color : #fff;
-                                       
-                                   """)
         self.port_qc.addItem("SELECT QC PORT")
         self.port_qc.clicked.connect(self.populate_combo_box_qc_tools_port)
         
@@ -163,7 +158,6 @@ class MainWindow(QMainWindow,QWidget):
         self.value_test_crystal = QLabel("N/A")
         self.value_test_crystal.setObjectName("label_test")
         self.value_test_crystal.setAlignment(Qt.AlignCenter)
-        
 
         self.label_test_sensor = QLabel("TEST SENSOR")
         self.label_test_sensor.setObjectName("label_test")
@@ -203,35 +197,20 @@ class MainWindow(QMainWindow,QWidget):
         self.pass_button = QPushButton("PASS")
         self.pass_button.setObjectName("pass_fail_btn")
         self.pass_button.setEnabled(False)
-        self.pass_button.setStyleSheet("""
-                                       QPushButton{
-                                           background-color:#D9E3DA;
-                                           border: 1px solid black;
-                                       }
-                                       """)
         
         self.fail_button = QPushButton("FAIL")
-        self.pass_button.setObjectName("pass_fail_btn")
+        self.fail_button.setObjectName("pass_fail_btn")
         self.fail_button.setEnabled(False)
-        self.fail_button.setStyleSheet("""
-                                       QPushButton{
-                                           background-color:#D9E3DA;
-                                           border: 1px solid black;
-                                       }
-                                       """)        
+   
         
         self.label_instruction = QLabel("SELECT THE PORT FIRST")
-        self.label_instruction.setStyleSheet("""border: 1px solid black;
-                                                border-radius:5px;
-                                                background-color:#fff;
-                                                font-size: 18px;""")
+        self.label_instruction.setObjectName("label_instruction_err")
+
         self.label_instruction.setAlignment(Qt.AlignCenter)
         
         self.label_error = QLabel("ERROR MESSAGE : N/A")
-        self.label_error.setStyleSheet("""border: 1px solid black;
-                                            border-radius:5px;
-                                            background-color:#fff;
-                                            font-size: 18px;""")
+        self.label_error.setObjectName("label_instruction_err")
+
         self.label_error.setAlignment(Qt.AlignCenter)
         self.inner.addWidget(self.label_qctool_port,0,0,2,0)
         self.inner.addWidget(self.port_qc, 0,1,2,2)
@@ -269,17 +248,6 @@ class MainWindow(QMainWindow,QWidget):
         # elif self.button_start.text() == "SET": 
         #     self.button_start.setText("START")                                      
     
-    def populate_combo_box_modem_port(self):
-        # print("CLIKC")
-        available_ports = SerialUtil.get_serial_ports()      
-        
-        if self.port_modem.count():
-            for index in range(0, self.port_modem.count()):
-                self.port_modem.removeItem(index)
-        for port in available_ports:
-            # item = port["port_name"]
-            self.port_modem.addItem(port["port_name"], port["port"])
-
     def populate_combo_box_qc_tools_port(self):
         available_ports = SerialUtil.get_serial_ports()      
         
@@ -291,9 +259,6 @@ class MainWindow(QMainWindow,QWidget):
             self.port_qc.addItem(item)
         self.button_start.setEnabled(True)
       
-
-
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

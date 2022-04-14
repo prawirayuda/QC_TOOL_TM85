@@ -80,6 +80,7 @@ class Controller:
         if update_status_label_instruction =="MODE STANDBY":
         
             self._parent.value_test_power.setText("N/A")
+            self._parent.value_test_crystal.setText("N/A")
             self._parent.value_test_sensor.setText("N/A")
             self._parent.value_test_tamper.setText("N/A")
             self._parent.value_test_simcard.setText("N/A")

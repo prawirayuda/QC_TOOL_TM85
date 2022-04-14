@@ -81,9 +81,6 @@ class QC_STATE_TEST_POWER_RAIL(State):
             self._worker._parent._parent.label_instruction.setText("TESTING POWER RAIL")
             #  7B 90 01 F4 01 7D 0A
             self.serialInst = serial.Serial()    
-            # val = input("SELECT PORT : ")   
-            # cb_port_qc = qc_ports.currentData.itemData(self._worker._parent._parent.port_qc.currentIndex())
-            # try:
             qc_ports:QComboBox = self._worker._parent._parent.port_qc   
             port_text = qc_ports.itemText(qc_ports.currentIndex())
             try:
@@ -100,7 +97,7 @@ class QC_STATE_TEST_POWER_RAIL(State):
             self.serialInst.open()
             list_buffer = []
             self.serialInst.write(b"{P?}")    
-            timeout = time.time() + 5 #in second 
+            timeout = time.time() + 7 #in second 
                 
             while True:
                 try:
@@ -118,7 +115,7 @@ class QC_STATE_TEST_POWER_RAIL(State):
                     if self.serialInst.in_waiting:
                         data = self.serialInst.read()
                         list_buffer.append(data.decode('utf-8'))
-                        print(list_buffer)
+                        # print(list_buffer)
                         try:
                             if list_buffer[-1] == "}":
                                 val1 = list_buffer[1:]
@@ -149,7 +146,7 @@ class QC_STATE_TEST_POWER_RAIL(State):
                                     self._worker._parent.update_label_test_power("FAIL")
                                     self._worker._parent._parent.value_test_power.setText(f"VALUE 1 : {final_val1:.3f}, VALUE 2 : {final_val2:.3f}")  
                                     self.serialInst.close()
-                                    time.sleep(2)
+                                    #wait till timeout
                         
 
                         except Exception as e:
@@ -169,7 +166,6 @@ class QC_STATE_TEST_POWER_RAIL(State):
             self._worker._parent._parent.label_error.setText(f"ERROR MESSAGE : {e}")
             self.serialInst.close()
             
-        
     def fail_function(self) -> None:
         pass
     
@@ -182,11 +178,16 @@ class QC_STATE_TEST_CRYSTAL(State):
         try:  
             print("STATE : QC_STATE_TEST_CRYSTAL.")
             self._worker._parent._parent.label_instruction.setText("TESTING CRYSTAL")
-            #  7B 90 01 F4 01 7D 0A
+            #start time
+            start_time = time.localtime() # get struct_time
+            time_string_start = time.strftime("%d,%m,%y,%H,%M,%S", start_time)
+            second_start = time_string_start[-2:]
+            print(second_start)
+            command_set_time = time_string_start
+            # time.sleep(2)           
+            
+            #select port
             self.serialInst = serial.Serial()    
-            # val = input("SELECT PORT : ")   
-            # cb_port_qc = qc_ports.currentData.itemData(self._worker._parent._parent.port_qc.currentIndex())
-            # try:
             qc_ports:QComboBox = self._worker._parent._parent.port_qc   
             port_text = qc_ports.itemText(qc_ports.currentIndex())
             try:
@@ -202,11 +203,13 @@ class QC_STATE_TEST_CRYSTAL(State):
             self.serialInst.stopbits= serial.STOPBITS_ONE
             self.serialInst.open()
             list_buffer = []
-            self.serialInst.write(b"{X?}")    
-            timeout = time.time() + 5 #in second 
+            time.sleep(3)
+            self.serialInst.write(command_set_time.encode())    
+            timeout = time.time() + 7 #in second 
                 
             while True:
                 try:
+                         
                     flag = 0
                     if flag == 1 or time.time() > timeout:
                         print("there's no data recieved")
@@ -224,29 +227,45 @@ class QC_STATE_TEST_CRYSTAL(State):
                         print(list_buffer)
                         try:
                             if list_buffer[-1] == "}":
-                                val1 = list_buffer[1:]
-                                val2 = val1[2:-1]
-                                print(val2)
+                                prefix = list_buffer[1:]
+                                suffix = prefix[2:-1]
+                                join_value = "".join(suffix)
+                                print(join_value)
 
-                                if val2 == "OK":
-                                    print("PASS")
-                                    self._worker._parent.update_label_test_crystal("PASS")
-                                    self._worker._parent._parent.value_test_crystal.setText(f"VALUE TEST CRYSTAL: {val2}")  
+                                if join_value == "OK!":
+                                    #get time tolerance 2 detik 
+                                    self.serialInst.write(b"{X?}")
+                                    list_buffer_time = []
+                                    while True:
+                                        try:
+                                            get_time = self.serialInst.read()
+                                            list_buffer_time.append(get_time.decode('utf-8'))
+                                            print(list_buffer_time)
+                                            if list_buffer_time[-1] == "}":
+                                                print("time")
+                                                break
+                                            # print("PASS")
+                                            # self._worker._parent.update_label_test_crystal("PASS")
+                                            # self._worker._parent._parent.value_test_crystal.setText(f"VALUE TEST CRYSTAL: {join_value}")  
+                                            # break
+                                        except:
+                                            pass
                                     break
+                                            
                                 else:
                                     print("FAIL")
                                     self._worker._parent.update_label_test_crystal("FAIL")
-                                    self._worker._parent._parent.value_test_crystal.setText(f"VALUE TEST CRYSTAL: {val2}")  
+                                    self._worker._parent._parent.value_test_crystal.setText(f"VALUE TEST CRYSTAL: {join_value}")  
                                     self.serialInst.close()
                                     #wait till timeout
-                                    time.sleep(2)
+                                    
                         
                         except Exception as e:
                             self._worker._parent._parent.label_error.setText(f"ERROR INPUT FROM MCU : {e}")
                             # print(f"ini {e}")
                         
                 except Exception as e:
-                    self._worker._parent._parent.label_error.setText(f"ERROR : INVALID VALUE POWER RAIL")
+                    self._worker._parent._parent.label_error.setText(f"ERROR : INVALID VALUE CRYSTAL")
                     print(e)
                         
             print("QC_STATE_CRYSTAL wants to next State")
@@ -287,7 +306,7 @@ class QC_STATE_SENSOR(State):
             self.serialInst.open()
             list_buffer = []
             self.serialInst.write(b"{S?}")
-            timeout = time.time() + 10 #in second         
+            timeout = time.time() + 7 #in second         
             while True:
                 try:
                     
@@ -372,7 +391,6 @@ class QC_STATE_TAMPER(State):
         
     def pass_function(self) -> None:
         print("STATE : QC_STATE_TEST_TAMPER.")
-        time.sleep(2)
         
         #for testing modem only
         self._worker._parent.update_label_test_tamper("PASS")
@@ -518,11 +536,16 @@ class QC_STATE_SIMCARD(State):
         for i in range(0, self.numConnection):
             port = self.port_modem[i]
             str_port = str(port)
-            print(str_port)
-            if "Modem" in str_port:
-                split_port = str_port.split(' ')
-                self.comport = (split_port[0])
-                # print(self.comport)
+            # print(str_port)
+            try:               
+                if "Modem" in str_port:
+                    split_port = str_port.split(' ')
+                    self.comport = (split_port[0])
+                    # print(self.comport)
+                else:
+                    print("modem not found")
+            except Exception as e:
+                self._worker._parent._parent.label_error.setText("MODEM NOT FOUND")
 
         tes = SerialAT(self.comport, USB_AT_BAUDRATE)
         for i in range(5):
@@ -532,11 +555,10 @@ class QC_STATE_SIMCARD(State):
                 if at_res == -1:
                     print("error value")
                     self._worker._parent._parent.label_error.setText("ERROR CHECK THE PORT")
-                    time.sleep(2)
-                    
+                    time.sleep(3)
                     return
             if at_res["Status"] == "OK":
-                print("OK SIMCARD")
+                print("ok simcard")
                 self._worker._parent._parent.value_test_simcard.setText("OK")
                 self._worker._parent.update_label_test_simcard("PASS")                
                 break
@@ -544,7 +566,7 @@ class QC_STATE_SIMCARD(State):
                 print('no sim card ')
                 self._worker._parent._parent.value_test_simcard.setText("SIMCARD NOT OK")
                 self._worker._parent.update_label_test_simcard("FAIL")
-                time.sleep(2)
+                time.sleep(3)
                 self._worker._parent.handleNG()       
                 if i == 4:
                     print("FAILED")
@@ -575,10 +597,15 @@ class QC_STATE_SIGNAL(State):
             port = self.port_modem[i]
             str_port = str(port)
             # print(str_port)
-            if "Modem" in str_port:
-                split_port = str_port.split(' ')
-                self.comport = (split_port[0])
-                # print(self.comport)        
+            try:               
+                if "Modem" in str_port:
+                    split_port = str_port.split(' ')
+                    self.comport = (split_port[0])
+                    # print(self.comport)
+                else:
+                    print("modem not found")
+            except Exception as e:
+                self._worker._parent._parent.label_error.setText("MODEM NOT FOUND")
     
         at = SerialAT(self.comport, USB_AT_BAUDRATE)
         time.sleep(3)
@@ -623,6 +650,7 @@ class Worker(QRunnable):
         self._parent._parent.button_start.setEnabled(False)
         standby = Context(QC_STATE_STANDBY(self))
         test_power_rail = Context(QC_STATE_TEST_POWER_RAIL(self))
+        test_crystal = Context(QC_STATE_TEST_CRYSTAL(self))
         test_sensor = Context(QC_STATE_SENSOR(self))
         test_tamper = Context(QC_STATE_TAMPER(self))
         test_modem_on = Context(QC_STATE_MODEM_ON(self))
@@ -635,39 +663,46 @@ class Worker(QRunnable):
 
         
         if update_status_test_power == "PASS":
-            self._parent._parent.value_test_sensor.setText("ON GOING")
-            test_sensor.pass_function()
-            update_status_test_sensor = self._parent._parent.label_instruction.text()
-            if update_status_test_sensor == "PASS":
-                self._parent._parent.value_test_tamper.setText("ON GOING")
-                test_tamper.pass_function()
-                update_status_test_tamper = self._parent._parent.label_instruction.text()
-                if update_status_test_tamper == "PASS":
-                    self._parent._parent.label_instruction.setText("TURNING ON MODEM !!")
-                    test_modem_on.pass_function()
-                    update_status_test_modem_on = self._parent._parent.label_instruction.text()
-                    if update_status_test_modem_on == "PASS":
-                        self._parent._parent.value_test_simcard.setText("ON GOING")
-                        test_simcard.pass_function()
-                        update_status_test_simcard = self._parent._parent.label_instruction.text()
-                        if update_status_test_simcard == "PASS":
-                            test_signal.pass_function()
-                            update_status_test_signal = self._parent._parent.label_instruction.text()
-                            if update_status_test_signal == "PASS":       
-                                self._parent._parent.pass_button.setStyleSheet("background-color:#4DAF50;")
-                                time.sleep(2)
-                                self._parent.standby_mode()
+            self._parent._parent.value_test_crystal.setText("ON GOING")
+            test_crystal.pass_function()
+            update_status_test_crystal = self._parent._parent.label_instruction.text()
+            if update_status_test_crystal == "PASS":
+                self._parent._parent.value_test_sensor.setText("ON GOING")
+                test_sensor.pass_function()
+                update_status_test_sensor = self._parent._parent.label_instruction.text()
+                if update_status_test_sensor == "PASS":
+                    self._parent._parent.value_test_tamper.setText("ON GOING")
+                    test_tamper.pass_function()
+                    update_status_test_tamper = self._parent._parent.label_instruction.text()
+                    if update_status_test_tamper == "PASS":
+                        self._parent._parent.label_instruction.setText("TURNING ON MODEM !!")
+                        test_modem_on.pass_function()
+                        update_status_test_modem_on = self._parent._parent.label_instruction.text()
+                        if update_status_test_modem_on == "PASS":
+                            self._parent._parent.value_test_simcard.setText("ON GOING")
+                            test_simcard.pass_function()
+                            update_status_test_simcard = self._parent._parent.label_instruction.text()
+                            if update_status_test_simcard == "PASS":
+                                test_signal.pass_function()
+                                update_status_test_signal = self._parent._parent.label_instruction.text()
+                                if update_status_test_signal == "PASS":       
+                                    self._parent._parent.pass_button.setStyleSheet("background-color:#4DAF50;")
+                                    time.sleep(2)
+                                    self._parent.standby_mode()
+                                    #finish
 
-                            elif update_status_test_signal =="FAIL":
-                                self._parent._parent.fail_button.setStyleSheet("background-color:#C82626;")
-                                self._parent.handleNG()
-                        elif update_status_test_simcard =="FAIL":
-                            self._parent.handleNG()                            
-                    elif update_status_test_modem_on =="FAIL":
+                                elif update_status_test_signal =="FAIL":
+                                    self._parent._parent.fail_button.setStyleSheet("background-color:#C82626;")
+                                    self._parent.handleNG()
+                            elif update_status_test_simcard =="FAIL":
+                                self._parent.handleNG()                            
+                        elif update_status_test_modem_on =="FAIL":
+                            self._parent.handleNG()
+                    elif update_status_test_tamper == "FAIL":
                         self._parent.handleNG()
-                elif update_status_test_tamper == "FAIL":
+                elif update_status_test_sensor == "FAIL":
                     self._parent.handleNG()
-            elif update_status_test_sensor == "FAIL":
+            elif update_status_test_crystal == "FAIL":
                 self._parent.handleNG()
         elif update_status_test_power == "FAIL":
             self._parent._parent.fail_button.setStyleSheet("background-color:#C82626;")
